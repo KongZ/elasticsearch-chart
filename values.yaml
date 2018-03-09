@@ -1,0 +1,116 @@
+# Default values for elasticsearch.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: "docker.elastic.co/elasticsearch/elasticsearch"
+  tag: "6.2.1"
+  pullPolicy: "IfNotPresent"
+
+cluster:
+  name: "elasticsearch"
+  config:
+  ## The number of processors is automatically detected, and the thread pool settings are automatically set based on it. 
+  ## In some cases it can be useful to override the number of detected processors.
+  ## https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-threadpool.html#processors
+  #   processors: 2
+  env:
+  ## Additional master nodes. By default, chart master nodes will be added to zen hosts. But if you want to add other
+  ## master nodes to the cluster, you can add it here
+  zen:
+    hosts:
+  #   - "10.148.0.22"
+
+coordinating:
+  replicas: 3
+  serviceType: ClusterIP
+  heapSize: "512m"
+  ## antiAffinity
+  ## "hard" would be co-locate the pods of service A and service B in the same zone
+  ## "sort" would be spread the pods from this service across zones
+  antiAffinity: "soft"
+  resources:
+    limits:
+      cpu: "1"
+    requests:
+      cpu: "100m"
+      memory: "728Mi"
+  podAnnotations:
+    prometheus/scrape: "true"
+    prometheus/port: "9200"
+  # serviceAnnotations:
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: cloud.google.com/gke-nodepool
+  #           operator: In
+  #           values:
+  #           - high-cpu-pool1
+  
+master:
+  replicas: 3
+  exposeHttp: false
+  heapSize: "256m"
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: "4Gi"
+    # storageClass: "ssd"
+  ## antiAffinity
+  ## "hard" would be co-locate the pods of service A and service B in the same zone
+  ## "sort" would be spread the pods from this service across zones
+  antiAffinity: "soft"
+  resources:
+    limits:
+      cpu: "1"
+    requests:
+      cpu: "25m"
+      memory: "512Mi"
+  podAnnotations:
+    prometheus/scrape: "true"
+    prometheus/port: "9200"
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: cloud.google.com/gke-nodepool
+  #           operator: In
+  #           values:
+  #           - default-pool3
+
+data:
+  replicas: 2
+  exposeHttp: true
+  heapSize: "10240m"
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: "100Gi"
+    # storageClass: "ssd"
+  terminationGracePeriodSeconds: 3600
+  ## antiAffinity
+  ## "hard" would be co-locate the pods of service A and service B in the same zone
+  ## "sort" would be spread the pods from this service across zones
+  antiAffinity: "soft"
+  resources:
+    limits:
+      cpu: "1"
+    requests:
+      cpu: "300m"
+      memory: "1280Mi"
+  podAnnotations:
+    prometheus/scrape: "true"
+    prometheus/port: "9200"
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: cloud.google.com/gke-nodepool
+  #           operator: In
+  #           values:
+  #           - high-mem-pool
+
+

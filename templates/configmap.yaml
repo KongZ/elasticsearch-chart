@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "elasticsearch.fullname" . }}
+  labels:
+    app: {{ template "elasticsearch.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+data:
+  elasticsearch.yml: |-
+    cluster.name: {{ .Values.cluster.name }}
+    node.name: ${HOSTNAME}
+    
+    node.data: ${NODE_DATA:true}
+    node.master: ${NODE_MASTER:true}
+    node.ingest: ${NODE_INGEST:true}
+
+    network.host: 0.0.0.0
+
+    ## https://www.elastic.co/guide/en/elasticsearch/reference/current/_memory_lock_check.html
+    # bootstrap.memory_lock: ${BOOTSTRAP_MEMORY_LOCK:true}
+
+{{- if .Values.cluster.zen.hosts }}
+    discovery.zen.ping.unicast.hosts: [ {{ template "elasticsearch.master.fullname" . }}{{ range .Values.cluster.zen.hosts }},{{ . | quote }}{{ end }}]
+{{- else }}
+    discovery.zen.ping.unicast.hosts: {{ template "elasticsearch.master.fullname" . }}
+{{- end }}
+
+{{- if .Values.master.replicas }}
+    ## IMPORTANT: https://www.elastic.co/guide/en/elasticsearch/reference/6.2/modules-node.html#split-brain
+    ## To prevent data loss, it is vital to configure the discovery.zen.minimum_master_nodes setting so that each master-eligible
+    ## node knows the minimum number of master-eligible nodes that must be visible in order to form a cluster.
+    ## This setting should be set to a quorum of master-eligible nodes: (master_eligible_nodes / 2) + 1
+    discovery.zen.minimum_master_nodes: {{printf "%d" (div .Values.master.replicas 2 | add 1)}}
+{{- end }}
+{{- if .Values.master.replicas }}
+    ## How many master nodes need to join the cluster before recovery can start.
+    gateway.expected_master_nodes: {{printf "%d" (div .Values.master.replicas 2 | add 1)}}
+    gateway.recover_after_master_nodes: {{printf "%d" (div .Values.master.replicas 2 | add 1)}}
+{{- end }}
+{{- if .Values.data.replicas }}
+    ## How many data nodes need to join the cluster before recovery can start.
+    gateway.expected_data_nodes: {{ .Values.data.replicas }}
+    gateway.recover_after_data_nodes: {{ .Values.data.replicas }}
+    gateway.recover_after_time: 5m
+{{- end }}
+
+{{- if .Values.cluster.config }}
+{{ toYaml .Values.cluster.config | indent 4 }}
+{{- end }}
+
+  pre-stop-hook.sh: |-
+    #!/bin/bash
+    set -e
+
+    NODE_NAME=${HOSTNAME}
+    echo "Prepare to migrate data of the node ${NODE_NAME}"
+    echo "Move all data from node ${NODE_NAME}"
+    curl -s -XPUT -H 'Content-Type: application/json' 'localhost:9200/_cluster/settings' -d "{
+      \"transient\" :{
+          \"cluster.routing.allocation.exclude._name\" : \"${NODE_NAME}\"
+      }
+    }"
+    echo ""
+
+    while true ; do
+      echo -e "Wait for node ${NODE_NAME} to become empty"
+      SHARDS_ALLOCATION=$(curl -s -XGET 'http://localhost:9200/_cat/shards')
+      if ! echo "${SHARDS_ALLOCATION}" | grep -E "${NODE_NAME}"; then
+        break
+      fi
+      sleep 1
+    done
+
+    echo "Node ${NODE_NAME} is ready to shutdown"
+  post-start-hook.sh: |-
+    #!/bin/bash
+    NODE_NAME=${HOSTNAME}
+    CLUSTER_SETTINGS=$(curl -s -XGET "http://{{ template "elasticsearch.master.fullname" . }}:9200/_cluster/settings")
+    if echo "${CLUSTER_SETTINGS}" | grep -E "${NODE_NAME}"; then
+      echo "Activate node ${NODE_NAME}"
+      curl -s -XPUT -H 'Content-Type: application/json' "http://{{ template "elasticsearch.master.fullname" . }}:9200/_cluster/settings" -d "{
+        \"transient\" :{
+            \"cluster.routing.allocation.exclude._name\" : null
+        }
+      }"
+    fi
+    echo "Node ${NODE_NAME} is ready to be used"

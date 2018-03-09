@@ -1,0 +1,10 @@
+name: elasticsearch
+home: https://www.elastic.co/products/elasticsearch
+version: 0.1.0
+description: Elasticsearch
+icon: https://static-www.elastic.co/assets/blteb1c97719574938d/logo-elastic-elasticsearch-lt.svg
+sources:
+- https://www.elastic.co/products/elasticsearch
+maintainers:
+- name: Siri Chongasamethaworn
+  email: goonohc@mgail.com
