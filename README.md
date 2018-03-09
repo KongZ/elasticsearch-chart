@@ -171,7 +171,7 @@ It is recommend to use NodeAffinity to deploy Data node on high I/O, memory, and
 ```
 
 Sample of Prometheus Metrics on Grafana
-![Prometheus Metrics](http://github.com/KongZ/elasticsearch-charts/raw/master/prometheus.png) 
+![Prometheus Metrics](https://github.com/KongZ/elasticsearch-chart/blob/master/prometheus.png) 
 
 ## Join other clusters
 If you already have existing cluster and you want this cluster to join them, you can specify the address of existing cluster from
