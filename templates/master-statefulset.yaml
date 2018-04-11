@@ -62,19 +62,28 @@ spec:
         command:
         - /bin/bash
         - -c
-        - chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data
+        - chown -R elasticsearch:elasticsearch /usr/share/elasticsearch
         securityContext:
           runAsUser: 0
         volumeMounts:
-        - mountPath: /usr/share/elasticsearch/data
-          name: data
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+        - name: plugins
+          mountPath: /usr/share/elasticsearch/plugins
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/log4j2.properties
+          subPath: log4j2.properties
       - name: "plugins"
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command:
         - /bin/bash
         - -c
-        - /usr/share/elasticsearch/bin/elasticsearch-plugin install -b https://github.com/vvanholl/elasticsearch-prometheus-exporter/releases/download/{{ .Values.image.tag }}.0/elasticsearch-prometheus-exporter-{{ .Values.image.tag }}.0.zip
+        - /usr/share/elasticsearch/bin/elasticsearch-plugin install repository-s3 &&
+          /usr/share/elasticsearch/bin/elasticsearch-plugin install -b https://github.com/vvanholl/elasticsearch-prometheus-exporter/releases/download/{{ .Values.image.tag }}.0/elasticsearch-prometheus-exporter-{{ .Values.image.tag }}.0.zip
         securityContext:
           runAsUser: 1000
         volumeMounts:
@@ -97,13 +106,6 @@ spec:
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
-        resources:
-{{ toYaml .Values.master.resources | indent 12 }}
-        readinessProbe:
-          httpGet:
-            path: /_cluster/health?local=true
-            port: 9200
-          initialDelaySeconds: 5
         ports:
         - containerPort: 9300
           name: transport
@@ -111,6 +113,13 @@ spec:
         - containerPort: 9200
           name: http
 {{ end }}
+        resources:
+{{ toYaml .Values.master.resources | indent 12 }}
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health?local=true
+            port: 9200
+          initialDelaySeconds: 5
         volumeMounts:
         - name: data
           mountPath: /usr/share/elasticsearch/data
@@ -119,6 +128,9 @@ spec:
         - name: config
           mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
           subPath: elasticsearch.yml
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/log4j2.properties
+          subPath: log4j2.properties
       volumes:
       - name: config
         configMap:

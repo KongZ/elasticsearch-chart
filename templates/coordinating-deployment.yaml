@@ -87,6 +87,17 @@ spec:
         - name: {{ $key }}
           value: {{ $value | quote }}
         {{- end }}
+        ports:
+        - name: http
+          containerPort: 9200
+        - name: transport
+          containerPort: 9300
+        volumeMounts:
+        - name: plugins
+          mountPath: /usr/share/elasticsearch/plugins
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
         resources:
 {{ toYaml .Values.coordinating.resources | indent 12 }}
         readinessProbe:
@@ -99,17 +110,6 @@ spec:
             path: /_cluster/health?wait_for_status=yellow
             port: 9200
           initialDelaySeconds: 90
-        ports:
-        - containerPort: 9200
-          name: http
-        - containerPort: 9300
-          name: transport
-        volumeMounts:
-        - name: plugins
-          mountPath: /usr/share/elasticsearch/plugins
-        - name: config
-          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
-          subPath: elasticsearch.yml
       volumes:
       - name: plugins
         emptyDir: {}

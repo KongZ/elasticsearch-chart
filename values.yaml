@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 image:
   repository: "docker.elastic.co/elasticsearch/elasticsearch"
-  tag: "6.2.1"
+  tag: "5.6.8"
   pullPolicy: "IfNotPresent"
 
 cluster:
@@ -18,7 +18,7 @@ cluster:
   ## master nodes to the cluster, you can add it here
   zen:
     hosts:
-  #   - "10.148.0.22"
+  #   - "10.148.0.23"
 
 coordinating:
   replicas: 3
@@ -35,9 +35,8 @@ coordinating:
       cpu: "100m"
       memory: "728Mi"
   podAnnotations:
-    prometheus/scrape: "true"
-    prometheus/port: "9200"
-  # serviceAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9200"
   # affinity:
   #   nodeAffinity:
   #     requiredDuringSchedulingIgnoredDuringExecution:
@@ -46,7 +45,7 @@ coordinating:
   #         - key: cloud.google.com/gke-nodepool
   #           operator: In
   #           values:
-  #           - high-cpu-pool1
+  #           - standard-pool
   
 master:
   replicas: 3
@@ -68,8 +67,8 @@ master:
       cpu: "25m"
       memory: "512Mi"
   podAnnotations:
-    prometheus/scrape: "true"
-    prometheus/port: "9200"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9200"
   # affinity:
   #   nodeAffinity:
   #     requiredDuringSchedulingIgnoredDuringExecution:
@@ -78,12 +77,12 @@ master:
   #         - key: cloud.google.com/gke-nodepool
   #           operator: In
   #           values:
-  #           - default-pool3
+  #           - standard-pool
 
 data:
   replicas: 2
   exposeHttp: true
-  heapSize: "10240m"
+  heapSize: "1024m"
   persistence:
     enabled: true
     accessMode: ReadWriteOnce
@@ -101,8 +100,8 @@ data:
       cpu: "300m"
       memory: "1280Mi"
   podAnnotations:
-    prometheus/scrape: "true"
-    prometheus/port: "9200"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9200"
   # affinity:
   #   nodeAffinity:
   #     requiredDuringSchedulingIgnoredDuringExecution:
@@ -111,6 +110,6 @@ data:
   #         - key: cloud.google.com/gke-nodepool
   #           operator: In
   #           values:
-  #           - high-mem-pool
+  #           - high-io-pool
 
 
