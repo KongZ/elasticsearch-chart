@@ -52,8 +52,6 @@ data:
 
   pre-stop-hook.sh: |-
     #!/bin/bash
-    set -e
-
     NODE_NAME=${HOSTNAME}
     echo "Prepare to migrate data of the node ${NODE_NAME}"
     echo "Move all data from node ${NODE_NAME}"
