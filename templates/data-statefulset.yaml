@@ -70,12 +70,6 @@ spec:
           mountPath: /usr/share/elasticsearch/data
         - name: plugins
           mountPath: /usr/share/elasticsearch/plugins
-        - name: config
-          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
-          subPath: elasticsearch.yml
-        - name: config
-          mountPath: /usr/share/elasticsearch/config/log4j2.properties
-          subPath: log4j2.properties
       - name: "plugins"
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
