@@ -7,12 +7,12 @@ Elasticsearch can be accessed:
     {{ template "elasticsearch.coordinating.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
 
   * From outside the cluster, run these commands in the same shell:
-    {{- if contains "NodePort" .Values.coordinating.serviceType }}
+    {{- if contains "NodePort" .Values.coordinating.service.type }}
 
-    export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "elasticsearch.client.fullname" . }})
+    export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ template "elasticsearch.coordinating.fullname" . }})
     export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
     echo "Elasticsearch can be accessed from http://$NODE_IP:$NODE_PORT"
-    {{- else if contains "LoadBalancer" .Values.coordinating.serviceType }}
+    {{- else if contains "LoadBalancer" .Values.coordinating.service.type }}
 
      WARNING: You have likely exposed your Elasticsearch cluster direct to the internet.
               Elasticsearch does not implement any security for public facing clusters by default.
@@ -23,7 +23,7 @@ Elasticsearch can be accessed:
 
     export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "elasticsearch.coordinating.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     echo "Elasticsearch can be accessed from http://$SERVICE_IP:9200"
-    {{- else if contains "ClusterIP"  .Values.coordinating.serviceType }}
+    {{- else if contains "ClusterIP"  .Values.coordinating.service.type }}
 
     export POD_NAME=$(kubectl get pod --namespace {{ .Release.Namespace }} -l "app={{ template "elasticsearch.name" . }},component=coordinating,release={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
     echo "Elasticsearch can be accessed from http://127.0.0.1:9200"

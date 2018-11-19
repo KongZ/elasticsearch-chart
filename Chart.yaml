@@ -1,4 +1,4 @@
-name: elasticsearch
+name: elasticsearch-charts
 home: https://www.elastic.co/products/elasticsearch
 version: 0.1.0
 description: Elasticsearch
@@ -9,3 +9,4 @@ sources:
 maintainers:
 - name: KongZ
   email: goonohc@mgail.com
+appVersion: 6.5.0

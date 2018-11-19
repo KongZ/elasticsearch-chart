@@ -37,39 +37,42 @@ The following tables lists the configurable parameters of the elasticsearch char
 
 | Parameter                            | Description                                              | Default                                             |
 |--------------------------------------|----------------------------------------------------------|-----------------------------------------------------|
+| `image.pullPolicy`                   | Container pull policy                                    | `IfNotPresent`                                      |
 | `image.repository`                   | Container image name                                     | `docker.elastic.co/elasticsearch/elasticsearch-oss` |
 | `image.tag`                          | Container image tag                                      | `6.2.1`                                             |
-| `image.pullPolicy`                   | Container pull policy                                    | `IfNotPresent`                                      |
 | `cluster.name`                       | Cluster name                                             | `elasticsearch`                                     |
 | `cluster.config`                     | Additional cluster config appended                       | `{}`                                                |
 | `cluster.env`                        | Cluster environment variables                            | `{}`                                                |
 | `cluster.zen.hosts`                  | Other cluster nodes                                      | `{}`                                                |
-| `coordinating.replicas`              | Coordinating node replicas (deployment)                  | `3`                                                 |
-| `coordinating.serviceType`           | Coordinating service type                                | `ClusterIP`                                         |
+| `coordinating.antiAffinity`          | Coordinating anti-affinity policy                        | `soft`                                              |
 | `coordinating.heapSize`              | Coordinating node heap size                              | `512m`                                              |
-| `coordinating.antiAffinity`          | Coordinating node anti-affinity                          | `soft`                                              |
-| `coordinating.resources`             | Coordinating node resources requests & limits            | `{}`                                                |
 | `coordinating.podAnnotations`        | Coordinating deployment annotations                      | `{}`                                                |
-| `coordinating.serviceAnnotations`    | Coordinating service annotations                         | `{}`                                                |
-| `master.replicas`                    | Master node replicas (deployment)                        | `3`                                                 |
+| `coordinating.replicas`              | Coordinating node replicas (deployment)                  | `3`                                                 |
+| `coordinating.resources`             | Coordinating node resources requests & limits            | `{}`                                                |
+| `coordinating.service.annotations`   | Coordinating service annotations                         | `{}`                                                |
+| `coordinating.service.type`          | Coordinating service type                                | `ClusterIP`                                         |
+| `master.antiAffinity`                | Master anti-affinity policy                              | `soft`                                              |
 | `master.exposeHttp`                  | Expose http port 9200 on master Pods for monitoring, etc | `false`                                             |
-| `master.heapSize`                    | Master node heap size                                    | `256m`                                              |
+| `master.heapSize`                    | Master node heap size                                    | `512m`                                              |
+| `master.podAnnotations`              | Master Deployment annotations                            | `{}`                                                |
 | `master.persistence.enabled`         | Master persistent enabled/disabled                       | `true`                                              |
+| `master.persistence.name`            | Master statefulset PVC template name                     | `data`                                              |
 | `master.persistence.size`            | Master persistent volume size                            | `4Gi`                                               |
 | `master.persistence.storageClass`    | Master persistent volume class                           | `nil`                                               |
 | `master.persistence.accessMode`      | Master persistent access mode                            | `ReadWriteOnce`                                     |
-| `master.antiAffinity`                | Master node anti-affinity                                | `soft`                                              |
+| `master.replicas`                    | Master node replicas (deployment)                        | `3`                                                 |
 | `master.resources`                   | Master node resources requests & limits                  | `{}`                                                |
-| `master.podAnnotations`              | Master Deployment annotations                            | `{}`                                                |
-| `data.replicas`                      | Data node replicas (statefulset)                         | `2`                                                 |
-| `data.exposeHttp`                    | Expose http port 9200 on data Pods for monitoring, etc   | `false`                                             |
-| `data.heapSize`                      | Data node heap size                                      | `1024m`                                             |
+| `master.service.annotations`         | Master service annotations                               | `{}`                                                |
+| `data.antiAffinity`                  | Data anti-affinity policy                                | `soft`                                              |
+| `data.heapSize`                      | Data node heap size                                      | `1536m`                                             |
+| `data.podAnnotations`                | Data statefulset annotations                             | `{}`                                                |
+| `data.replicas`                      | Data node replicas (statefulset)                         | `3`                                                 |
+| `data.resources`                     | Data node resources requests & limits                    | `{}`                                                |
 | `data.persistence.enabled`           | Data persistent enabled/disabled                         | `true`                                              |
-| `data.persistence.size`              | Data persistent volume size                              | `100Gi`                                             |
+| `data.persistence.name`              | Data statefulset PVC template name                       | `data`                                              |
+| `data.persistence.size`              | Data persistent volume size                              | `30Gi`                                              |
 | `data.persistence.storageClass`      | Data persistent volume Class                             | `nil`                                               |
 | `data.persistence.accessMode`        | Data persistent Access Mode                              | `ReadWriteOnce`                                     |
-| `data.resources`                     | Data node resources requests & limits                    | `{}`                                                |
-| `data.podAnnotations`                | Data statefulset annotations                             | `{}`                                                |
 | `data.terminationGracePeriodSeconds` | Data termination grace period (seconds)                  | `3600`                                              |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.

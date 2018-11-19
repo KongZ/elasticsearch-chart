@@ -8,11 +8,21 @@ metadata:
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
   name: {{ template "elasticsearch.master.fullname" . }}
+{{- if .Values.master.serviceAnnotations }}
+  annotations:
+  {{- range $key, $value := .Values.master.serviceAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
 spec:
   clusterIP: None
   ports:
     - port: 9300
       targetPort: transport
+{{ if .Values.master.exposeHttp }}
+    - port: 9200
+      targetPort: http
+{{ end }}
   selector:
     app: {{ template "elasticsearch.name" . }}
     component: "master"

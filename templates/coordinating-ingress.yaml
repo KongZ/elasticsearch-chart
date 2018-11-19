@@ -1,0 +1,33 @@
+{{- if .Values.coordinating.ingress.enabled -}}
+{{- $global := . }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+{{- if .Values.coordinating.ingress.annotations }}
+  annotations:
+  {{- range $key, $value := .Values.coordinating.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}
+  labels:
+    app: {{ template "elasticsearch.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "coordinating"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "elasticsearch.coordinating.fullname" . }}
+spec:
+  rules:
+  {{- range .Values.coordinating.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - backend:
+              serviceName: {{ template "elasticsearch.coordinating.fullname" $global }}
+              servicePort: 9200
+  {{- end -}}
+  {{- if .Values.coordinating.ingress.tls }}
+  tls:
+{{ toYaml .Values.coordinating.ingress.tls | indent 4 }}
+  {{- end -}}
+{{- end -}}

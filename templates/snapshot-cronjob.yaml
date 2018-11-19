@@ -1,0 +1,35 @@
+{{- if .Values.snapshot.enabled -}}
+{{- $col := ":" -}}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    app: {{ template "elasticsearch.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    component: "snapshot"
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "elasticsearch.snapshot.fullname" . }}
+spec:
+  schedule: "{{ .Values.snapshot.schedule }}"
+  concurrencyPolicy: Forbid # Do not run snapshot again if it is running
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      parallelism: 1
+      template:
+        spec:
+          containers:
+            - name: "snapshot"
+              image: "busybox"
+              imagePullPolicy: "IfNotPresent"
+              command: 
+                - /bin/sh
+                - -c
+                - COL=":"; ES_HOST={{ template "elasticsearch.coordinating.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local; 
+                  echo -e "PUT /_snapshot/{{ .Values.snapshot.name }}/$(date +%Y%m%d_%H%M%S)?wait_for_completion=false HTTP/1.1\r\nHost$COL $ES_HOST\r\n" | nc -w2 $ES_HOST 9200 &&
+                  echo "Snapshot sent"
+          restartPolicy: "{{ .Values.snapshot.restartPolicy }}"
+{{- end -}}

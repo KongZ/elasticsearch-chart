@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   labels:
@@ -11,6 +11,11 @@ metadata:
 spec:
   serviceName: {{ template "elasticsearch.data.fullname" . }}
   replicas: {{ .Values.data.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "elasticsearch.name" . }}
+      component: "data"
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
@@ -19,9 +24,15 @@ spec:
         release: {{ .Release.Name }}
     {{- if .Values.data.podAnnotations }}
       annotations:
-{{ toYaml .Values.data.podAnnotations | indent 8 }}
+      {{- range $key, $value := .Values.data.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
     {{- end }}
     spec:
+    {{- if .Values.data.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.data.nodeSelector | indent 8 }}
+    {{- end }}
       affinity:
       {{- if eq .Values.data.antiAffinity "hard" }}
         podAntiAffinity:
@@ -47,12 +58,16 @@ spec:
       {{- if .Values.data.affinity }}
 {{ toYaml .Values.data.affinity | indent 8 }}
       {{- end }}
+      {{- if .Values.data.tolerations }}
+      tolerations:
+{{ toYaml .Values.data.tolerations | indent 8 }}
+      {{- end }}
       initContainers:
       # see https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
       # and https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html#mlockall
       - name: "sysctl"
         image: "busybox"
-        imagePullPolicy: "Always"
+        imagePullPolicy: "IfNotPresent"
         command: ["sysctl", "-w", "vm.max_map_count=262144"]
         securityContext:
           privileged: true
@@ -94,6 +109,7 @@ spec:
           value: "true"
         - name: NODE_INGEST
           value: "false"
+          ## Added -Djava.security.policy workaround to fix java policy
         - name: ES_JAVA_OPTS
           value: "-Djava.net.preferIPv4Stack=true -Xms{{ .Values.data.heapSize }} -Xmx{{ .Values.data.heapSize }}"
         {{- range $key, $value :=  .Values.cluster.env }}
